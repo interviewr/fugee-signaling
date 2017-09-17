@@ -1,0 +1,18 @@
+{
+  "name": "fugee-signalling",
+  "version": "1.0.0",
+  "description": "Signalling server for fugee conference",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "signalling",
+    "socket.io"
+  ],
+  "author": "Alexey Vakulich <soulSpringg@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "socket.io": "^2.0.3"
+  }
+}
