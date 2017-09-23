@@ -1,0 +1,7 @@
+export default {
+  OFFER: 'OFFER',
+  ANSWER: 'ANSWER',
+  CANDIDATE: 'CANDIDATE',
+  JOIN_ROOM: 'JOIN_ROOM',
+  LEAVE_ROOM: 'LEAVE_ROOM',
+}
