@@ -1,35 +1,62 @@
-const io = require('socket.io')(3334);
+const io = require('socket.io')();
+const uuid = require('node-uuid');
+const debug = require('debug')('fugee');
 
-const users = {};
+const port = process.env.PORT || 3334;
+const rooms = {};
+const userIds = {};
 
 io.on('connection', (socket) => {
-  socket.on('room', (message) => {
-    const data = JSON.parse(message);
-    users[data.id] = socket;
+  debug(`Received a new connection`);
 
-    if (socket.room) {
-      socket.leave(socket.room);
+  let currentRoom;
+  let id;
+
+  socket.on('init', (data, fn) => {
+    currentRoom = (data || {}).room || uuid.v4();
+    const room = rooms[currentRoom];
+
+    if (!data) {
+      rooms[currentRoom] = [socket];
+      id = userIds[currentRoom] = 0;
+      fn(currentRoom, id);
+
+      debug(`Room created with id: ${currentRoom}`);
+    } else {
+      if (!room) return;
+
+      userIds[currentRoom] += 1;
+      id = userIds[currentRoom];
+      fn(currentRoom, id);
+
+      room.forEach((s) => {
+        s.emit('peer.connected', { id });
+      });
+
+      room[id] = socket;
+      debug(`Peer connected to room ${currentRoom} with id: ${id}`);
     }
-
-    socket.room = data.room;
-    socket.join(socket.room);
-    socket.user_id = data.id;
-
-    socket.broadcast.to(socket.room).emit('new', data.id);
   });
 
-  socket.on('webrtc', (message) => {
-    const data = JSON.parse(message);
+  socket.on('msg', (data) => {
+    const to = Number.parseInt(data.to, 10);
 
-    if (data.to && users[data.to]) {
-      users[data.to].emit('webrtc', message);
+    if (rooms[currentRoom] && rooms[currentRoom][to]) {
+      debug(`Redirecting message to: ${to} by: ${data.by}`);
+      rooms[currentRoom][to].emit('msg', data);
     } else {
-      socket.broadcast.to(socket.room).emit('webrtc', message);
+      debug('Invalid user');
     }
   });
 
   socket.on('disconnect', () => {
-    socket.broadcast.to(socket.room).emit('leave', socket.user_id);
-    delete users[socket.user_id];
+    if (!currentRoom && !rooms[currentRoom]) return;
+
+    delete rooms[currentRoom][rooms[currentRoom].indexOf(socket)];
+    rooms[currentRoom].forEach((socket) => {
+      socket.emit('peed.disconnected', { id });
+    });
   });
 });
+
+io.listen(port);
