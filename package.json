@@ -4,15 +4,20 @@
   "description": "Signalling server for fugee conference",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "DEBUG=fugee nodemon index.js"
   },
   "keywords": [
     "signalling",
-    "socket.io"
+    "websockets"
   ],
   "author": "Alexey Vakulich <soulSpringg@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "debug": "^3.0.1",
+    "node-uuid": "^1.4.8",
     "socket.io": "^2.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1"
   }
 }
