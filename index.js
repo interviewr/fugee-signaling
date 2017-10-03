@@ -1,61 +1,45 @@
 const io = require('socket.io')();
-const uuid = require('node-uuid');
 const debug = require('debug')('fugee');
 
 const port = process.env.PORT || 3334;
-const rooms = {};
-const userIds = {};
+const users = {};
 
 io.on('connection', (socket) => {
   debug(`Received a new connection`);
 
-  let currentRoom;
-  let id;
-
   socket.on('init', (data, fn) => {
-    currentRoom = (data || {}).room || uuid.v4();
-    const room = rooms[currentRoom];
+    users[data.userID] = socket;
 
-    if (!data) {
-      rooms[currentRoom] = [socket];
-      id = userIds[currentRoom] = 0;
-      fn(currentRoom, id);
-
-      debug(`Room created with id: ${currentRoom}`);
-    } else {
-      if (!room) return;
-
-      userIds[currentRoom] += 1;
-      id = userIds[currentRoom];
-      fn(currentRoom, id);
-
-      room.forEach((s) => {
-        s.emit('peer.connected', { id });
-      });
-
-      room[id] = socket;
-      debug(`Peer connected to room ${currentRoom} with id: ${id}`);
+    if (socket.room) {
+      socket.leave(socket.room);
     }
+
+    socket.room = data.room;
+    socket.join(socket.room);
+    socket.userID = data.userID;
+
+    fn(socket.room, socket.userID);
+
+    socket.broadcast.to(socket.room).emit('peer.connected', { id: data.userID });
+
+    debug(`Peer connected to room ${data.room} with id: ${data.userID}`);
   });
 
   socket.on('msg', (data) => {
-    const to = Number.parseInt(data.to, 10);
+    if (data.to && users[data.to]) {
+      debug(`Redirecting message to: ${data.to} by: ${data.by}`);
 
-    if (rooms[currentRoom] && rooms[currentRoom][to]) {
-      debug(`Redirecting message to: ${to} by: ${data.by}`);
-      rooms[currentRoom][to].emit('msg', data);
+      users[data.to].emit('msg', data);
     } else {
       debug('Invalid user');
     }
   });
 
-  socket.on('disconnect', () => {
-    if (!currentRoom && !rooms[currentRoom]) return;
+  socket.on('disconnect', (reason) => {
+    debug(`Peer disconnected: ${reason}`);
 
-    delete rooms[currentRoom][rooms[currentRoom].indexOf(socket)];
-    rooms[currentRoom].forEach((socket) => {
-      socket.emit('peed.disconnected', { id });
-    });
+    socket.broadcast.to(socket.room).emit('peed.disconnected', { id: socket.userID });
+    delete users[socket.userID];
   });
 });
 
