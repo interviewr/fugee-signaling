@@ -1,7 +1,7 @@
 FROM node:latest
 MAINTAINER Alexey Vakulich "soulSpringg@gmail.com"
 
-ENV SRC_DIR=/usr/workspace/fugee-signalling
+ENV SRC_DIR=/usr/workspace/fugee-signaling
 
 ADD . $SRC_DIR
 WORKDIR $SRC_DIR

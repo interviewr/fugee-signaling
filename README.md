@@ -1,2 +1,2 @@
-# fugee-signalling
-Signalling server for fugee conference
+# fugee-signaling
+Signaling server for fugee conference
