@@ -1,4 +1,11 @@
-const io = require('socket.io')();
+const server = require('http').createServer();
+const io = require('socket.io')(server, {
+  path: process.env.SIGNALING_PATH,
+  serveClient: false,
+  pingInterval: 10000,
+  pingTimeout: 5000,
+  cookie: false
+});
 const debug = require('debug')('fugee');
 
 const port = process.env.PORT || 3334;
@@ -43,4 +50,4 @@ io.on('connection', (socket) => {
   });
 });
 
-io.listen(port);
+server.listen(port);
