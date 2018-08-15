@@ -1,13 +1,11 @@
 FROM node:latest
-MAINTAINER Alexey Vakulich "soulSpringg@gmail.com"
+LABEL maintainer "Alexey Vakulich <alexey.vakulich@gmail.com>"
 
-ENV SRC_DIR=/usr/workspace/fugee-signaling
+ENV SRC_DIR=/usr/workspace/raven-signal
 
 ADD . $SRC_DIR
 WORKDIR $SRC_DIR
 
-RUN yarn install
-
-CMD ["yarn", "start"]
+CMD ["npm", "start"]
 
 EXPOSE 3334
