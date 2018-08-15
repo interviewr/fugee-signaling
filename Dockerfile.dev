@@ -1,2 +1,0 @@
-FROM node:latest
-MAINTAINER Alexey Vakulich "soulSpringg@gmail.com"

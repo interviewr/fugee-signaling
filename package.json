@@ -1,22 +1,20 @@
 {
-  "name": "fugee-signalling",
-  "version": "1.0.0",
-  "description": "Signalling server for fugee conference",
+  "name": "raven-signal",
+  "version": "0.1.0",
+  "description": "Signalling server for Raven P2P web conference",
   "main": "index.js",
   "scripts": {
-    "start": "DEBUG=fugee nodemon index.js"
+    "start": "DEBUG=raven-signal node index.js"
   },
   "keywords": [
     "signalling",
     "websockets"
   ],
-  "author": "Alexey Vakulich <soulSpringg@gmail.com>",
+  "author": "Alexey Vakulich <alexey.vakulich@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "debug": "^3.0.1",
-    "socket.io": "^2.0.3"
-  },
-  "devDependencies": {
-    "nodemon": "^1.12.1"
+    "debug": "^3.1.0",
+    "express": "^4.16.3",
+    "socket.io": "^2.1.1"
   }
 }

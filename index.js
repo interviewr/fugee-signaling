@@ -1,53 +1,36 @@
-const server = require('http').createServer();
-const io = require('socket.io')(server, {
+const app = require('express')();
+const http = require('http').Server(app);
+const io = require('socket.io')(http, {
   path: process.env.SIGNALING_PATH,
-  serveClient: false,
-  pingInterval: 10000,
-  pingTimeout: 5000,
-  cookie: false
 });
-const debug = require('debug')('fugee');
-
-const port = process.env.PORT || 3334;
-const users = {};
+const debug = require('debug')('raven-signal');
 
 io.on('connection', (socket) => {
-  debug(`Received a new connection`);
+  debug('Received a new connection');
 
-  socket.on('init', (data, fn) => {
-    users[data.userID] = socket;
+  socket.on('join', (room) => {
+    debug(`User connected to room ${room}`);
 
-    if (socket.room) {
-      socket.leave(socket.room);
-    }
+    const peers = io.nsps['/'].adapter.rooms[room]
+      ? Object.keys(io.nsps['/'].adapter.rooms[room].sockets)
+      : [];
 
-    socket.room = data.room;
-    socket.join(socket.room);
-    socket.userID = data.userID;
-
-    fn(socket.room, socket.userID);
-
-    socket.broadcast.to(socket.room).emit('peer.connected', { id: data.userID });
-
-    debug(`Peer connected to room ${data.room} with id: ${data.userID}`);
+    socket.emit('peers', peers);
+    socket.join(room);
   });
 
-  socket.on('msg', (data) => {
-    if (data.to && users[data.to]) {
-      debug(`Redirecting message to: ${data.to} by: ${data.by}`);
+  socket.on('signal', (data) => {
+    debug(`Received signal: id [${data.id}], signal [${data.signal}]`);
 
-      users[data.to].emit('msg', data);
-    } else {
-      debug('Invalid user');
-    }
-  });
-
-  socket.on('disconnect', (reason) => {
-    debug(`Peer disconnected: ${reason}`);
-
-    socket.broadcast.to(socket.room).emit('peed.disconnected', { id: socket.userID });
-    delete users[socket.userID];
+    const client = io.sockets.connected[data.id];
+    client && client.emit('signal', {
+      id: socket.id,
+      signal: data.signal,
+    });
   });
 });
 
-server.listen(port);
+const port = process.env.PORT || 3334;
+http.listen(port, () => {
+  console.log('Signalling server listening on port:', port);
+});

@@ -1,0 +1,18 @@
+language: node_js
+node_js:
+  - "lts/*"
+
+before_install:
+  - yarn
+
+services:
+  - docker
+
+script:
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+  - make image-build image-publish IMAGE_VERSION=$TRAVIS_BRANCH
+
+branches:
+  only:
+    - develop
+    - tags
